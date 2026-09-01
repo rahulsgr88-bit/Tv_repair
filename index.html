@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans pb-16">
 
   <div class="max-w-md mx-auto space-y-4">
     
@@ -16,7 +16,9 @@
         <h1 class="text-xl font-bold tracking-wide">RK ELECTRONICS</h1>
         <p class="text-xs text-blue-200">LED TV Repair Hub & AI Diagnostics</p>
       </div>
-      <span class="text-lg font-extrabold bg-blue-800 px-3 py-1.5 rounded-lg border border-blue-400">TV</span>
+      <button onclick="toggleAdminPanel()" class="text-xs font-bold bg-blue-800 hover:bg-blue-700 text-white px-3 py-2 rounded-lg border border-blue-400 active:scale-95 transition flex items-center gap-1">
+        <span>⚙</span> Admin
+      </button>
     </div>
 
     <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 shadow-md">
@@ -43,15 +45,149 @@
       <div id="resultContent" class="text-xs text-slate-200 whitespace-pre-line leading-relaxed pl-1"></div>
     </div>
 
-  </div>
+    <div id="adminPanel" class="hidden bg-slate-800 p-4 rounded-xl border-2 border-yellow-500/50 space-y-3 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+        <h2 class="text-sm font-bold text-yellow-400 flex items-center gap-1.5">
+          <span>➕</span> Add New TV Fault Solution
+        </h2>
+        <button onclick="toggleAdminPanel()" class="text-xs text-slate-400 hover:text-white px-2 py-1">✕ Close</button>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <label class="block text-slate-300 mb-1">Model Number:</label>
+          <input type="text" id="admModel" placeholder="e.g. UA32T4340AK" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 mb-1">Board / Chassis Number:</label>
+          <input type="text" id="admBoard" placeholder="e.g. TP.SK506S.PB801" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 mb-1">Fault / Solution Details:</label>
+          <textarea id="admSolution" rows="3" placeholder="e.g. Backlight boost voltage low, replaced 47uF capacitor & removed protection resistor..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 mb-1">Circuit / Fault Image (Optional):</label>
+          <input type="file" id="admImage" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-slate-400 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-yellow-500 file:text-slate-900">
+        </div>
+
+        <button onclick="uploadNewSolution()" id="admUploadBtn" class="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-2.5 rounded-lg text-xs transition active:scale-95 shadow">
+          Upload Directly to Database
+        </button>
+        <p id="admStatusMsg" class="text-center text-[11px] hidden font-semibold"></p>
+      </div>
+    </div>
+    </div>
 
   <script>
     const SUPABASE_URL = "https://zilgbuncmusoxgerluxs.supabase.co";
     const SUPABASE_KEY = "sb_publishable_zFfU8GvAKqHf2KXNwyqwzQ_4XjHLHKW";
     const API_KEY = "AQ.Ab8RN6KlZeP3blkwQmm6dMeupJB_BUfRj758dNoTIYCHH0W_KA";
+    const ADMIN_PIN = "1234"; // Default admin PIN (Aap ise badal sakte hain)
 
     const { createClient } = window.supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let isAdminLoggedIn = false;
+
+    function toggleAdminPanel() {
+      const panel = document.getElementById('adminPanel');
+      if (panel.classList.contains('hidden')) {
+        if (!isAdminLoggedIn) {
+          const pin = prompt("Admin Security PIN enter karein:");
+          if (pin === ADMIN_PIN) {
+            isAdminLoggedIn = true;
+            panel.classList.remove('hidden');
+          } else if (pin !== null) {
+            alert("Galat PIN!");
+          }
+        } else {
+          panel.classList.remove('hidden');
+        }
+      } else {
+        panel.classList.add('hidden');
+      }
+    }
+
+    async function uploadNewSolution() {
+      const model = document.getElementById('admModel').value.trim();
+      const board = document.getElementById('admBoard').value.trim();
+      const solution = document.getElementById('admSolution').value.trim();
+      const imageFile = document.getElementById('admImage').files[0];
+      const uploadBtn = document.getElementById('admUploadBtn');
+      const statusMsg = document.getElementById('admStatusMsg');
+
+      if (!model || !solution) {
+        alert("Model Number aur Solution likhna zaroori hai.");
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      uploadBtn.innerText = "Uploading... Please wait...";
+      statusMsg.className = "text-center text-[11px] text-yellow-400 font-semibold block";
+      statusMsg.innerText = "Connecting to Supabase...";
+
+      try {
+        let uploadedImageName = "";
+
+        // Agar image chuni gayi hai toh use bucket me upload karein
+        if (imageFile) {
+          statusMsg.innerText = "Uploading Image...";
+          const cleanFileName = `${Date.now()}_${imageFile.name.replace(/\s+/g, '_')}`;
+          
+          const { data: imgData, error: imgError } = await db.storage
+            .from('post-images')
+            .upload(cleanFileName, imageFile);
+
+          if (imgError) {
+            throw new Error("Image Upload Failed: " + imgError.message);
+          }
+          uploadedImageName = cleanFileName;
+        }
+
+        // Database me row insert karein
+        statusMsg.innerText = "Saving data to table...";
+        const { error: dbError } = await db
+          .from('Tv Posts')
+          .insert([
+            {
+              "Modal number": model,
+              "Board number": board,
+              "solution_details": solution,
+              "Circuit image": uploadedImageName
+            }
+          ]);
+
+        if (dbError) {
+          throw new Error("Database Save Failed: " + dbError.message);
+        }
+
+        statusMsg.className = "text-center text-[11px] text-green-400 font-semibold block";
+        statusMsg.innerText = "✓ Solution successfully uploaded!";
+
+        // Inputs reset karein
+        document.getElementById('admModel').value = '';
+        document.getElementById('admBoard').value = '';
+        document.getElementById('admSolution').value = '';
+        document.getElementById('admImage').value = '';
+
+        setTimeout(() => {
+          statusMsg.classList.add('hidden');
+          document.getElementById('adminPanel').classList.add('hidden');
+        }, 2000);
+
+      } catch (err) {
+        console.error(err);
+        statusMsg.className = "text-center text-[11px] text-red-400 font-semibold block";
+        statusMsg.innerText = "Error: " + err.message;
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.innerText = "Upload Directly to Database";
+      }
+    }
 
     async function searchInDatabase() {
       const modelInfo = document.getElementById('modelInput').value.trim();
@@ -172,4 +308,5 @@
     }
   </script>
 </body>
-</html>
+  </html>
+  
