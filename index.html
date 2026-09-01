@@ -2,12 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>RK ELECTRONICS - LED TV Repair Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* Prevent image downloading, dragging, and context menu */
+    img {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      -khtml-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      pointer-events: auto;
+    }
+    .no-download {
+      -webkit-user-drag: none;
+      user-drag: none;
+    }
+    .zoomable-img {
+      touch-action: pinch-zoom;
+      transition: transform 0.2s ease;
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans pb-16">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans pb-20 select-none" oncontextmenu="return false;">
 
   <div class="max-w-md mx-auto space-y-4">
     
@@ -26,7 +46,7 @@
     <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 shadow-md">
       <div>
         <label class="block text-sm font-medium mb-1.5 text-slate-300">TV Model / Board Number / Fault:</label>
-        <input type="text" id="modelInput" placeholder="e.g. demo or CA1235" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+        <input type="text" id="modelInput" placeholder="e.g. CA1235 or UA32FH4003" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
       </div>
       <button onclick="searchInDatabase()" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg text-sm transition tracking-wider active:scale-[0.98]">
         Analyze & Search Solutions
@@ -53,7 +73,7 @@
     <div id="adminPanel" class="hidden bg-slate-800 p-4 rounded-xl border-2 border-yellow-500/50 space-y-3 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-700 pb-2">
         <h2 class="text-sm font-bold text-yellow-400 flex items-center gap-1.5">
-          <span>➕</span> Add New TV Fault Solution
+          <span>➕</span> Add TV Fault Solution
         </h2>
         <button onclick="toggleAdminPanel()" class="text-xs text-slate-400 hover:text-white px-2 py-1">✕ Close</button>
       </div>
@@ -75,9 +95,9 @@
         </div>
 
         <div>
-          <label class="block text-slate-300 mb-1">Circuit / Fault Images (Ek ya Ek se zyada chunein):</label>
-          <input type="file" id="admImage" accept="image/*" multiple class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-slate-400 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-yellow-500 file:text-slate-900">
-          <p class="text-[10px] text-yellow-300/80 mt-1">📸 Photo select karte waqt gallery me photo par 1 sec dabaye rakhein (Long Press) taaki multiple photos tick ho sakein.</p>
+          <label class="block text-slate-300 mb-1">Circuit / Fault Images (Multiple Photos Supported):</label>
+          <input type="file" id="admImage" accept="image/*" multiple="multiple" onchange="updateSelectedFilesCount()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-slate-400 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-yellow-500 file:text-slate-900">
+          <p id="fileCountDisplay" class="text-[11px] text-yellow-400 font-semibold mt-1">0 files selected (Gallery me long-press karke multiple select karein)</p>
         </div>
 
         <button onclick="uploadNewSolution()" id="admUploadBtn" class="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-2.5 rounded-lg text-xs transition active:scale-95 shadow">
@@ -88,6 +108,15 @@
     </div>
     <!-- ======================================================== -->
 
+  </div>
+
+  <!-- Fullscreen Zoom Modal (View Only - No Download) -->
+  <div id="imageModal" class="fixed inset-0 bg-black/95 z-50 hidden flex flex-col items-center justify-center p-2 select-none" oncontextmenu="return false;">
+    <button onclick="closeZoomModal()" class="absolute top-4 right-4 bg-slate-800 text-white font-bold px-4 py-2 rounded-full text-xs border border-slate-600 active:scale-90">✕ Close</button>
+    <div class="overflow-auto max-h-[85vh] max-w-[95vw] flex items-center justify-center">
+      <img id="modalImg" src="" draggable="false" oncontextmenu="return false;" class="zoomable-img no-download max-w-none w-full object-contain" alt="Circuit View">
+    </div>
+    <p class="text-slate-400 text-[11px] mt-2">🔍 Pinch / Double-tap karke zoom karein (Protected View)</p>
   </div>
 
   <script>
@@ -119,6 +148,27 @@
       }
     }
 
+    function updateSelectedFilesCount() {
+      const files = document.getElementById('admImage').files;
+      const countDisplay = document.getElementById('fileCountDisplay');
+      if (files.length > 0) {
+        countDisplay.innerText = `✓ Total ${files.length} photo(s) selected for upload`;
+      } else {
+        countDisplay.innerText = "0 files selected";
+      }
+    }
+
+    function openZoomModal(imgSrc) {
+      const modal = document.getElementById('imageModal');
+      const img = document.getElementById('modalImg');
+      img.src = imgSrc;
+      modal.classList.remove('hidden');
+    }
+
+    function closeZoomModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+    }
+
     async function uploadNewSolution() {
       const model = document.getElementById('admModel').value.trim();
       const board = document.getElementById('admBoard').value.trim();
@@ -136,14 +186,14 @@
       uploadBtn.disabled = true;
       uploadBtn.innerText = "Uploading... Please wait...";
       statusMsg.className = "text-center text-[11px] text-yellow-400 font-semibold block";
-      statusMsg.innerText = "Connecting to Supabase...";
+      statusMsg.innerText = "Connecting to Database...";
 
       try {
         let uploadedImageNames = [];
 
         if (files && files.length > 0) {
           for (let i = 0; i < files.length; i++) {
-            statusMsg.innerText = `Uploading Image ${i + 1} of ${files.length}...`;
+            statusMsg.innerText = `Uploading image ${i + 1} of ${files.length}...`;
             const file = files[i];
             const cleanFileName = `${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
             
@@ -152,48 +202,45 @@
               .upload(cleanFileName, file);
 
             if (imgError) {
-              throw new Error(`Image ${i+1} Upload Failed: ${imgError.message}`);
+              throw new Error(`Image ${i+1} upload failed: ` + imgError.message);
             }
             uploadedImageNames.push(cleanFileName);
           }
         }
 
-        statusMsg.innerText = "Saving data to table...";
+        statusMsg.innerText = "Saving fault data...";
         const imagesString = uploadedImageNames.join(',');
 
-        // Dono casing formats ko ek sath bhej rahe hain taaki koi bhi column empty ya missing na rahe
-        const finalPayload = {
-          "modal_number": model,
-          "board_number": board,
-          "solution_details": solution,
-          "circuit_image": imagesString,
+        const payload = {
+          modal_number: model,
+          board_number: board,
+          solution_details: solution,
+          circuit_image: imagesString,
           "Modal number": model,
           "Board number": board,
           "Circuit image": imagesString
         };
 
-        const { error: dbError } = await db.from('Tv Posts').insert([finalPayload]);
+        const { error: dbError } = await db.from('Tv Posts').insert([payload]);
 
         if (dbError) {
-          // Fallback to lowercase strictly
           const { error: dbError2 } = await db.from('Tv Posts').insert([{
             modal_number: model,
             board_number: board,
             solution_details: solution,
             circuit_image: imagesString
           }]);
-          if (dbError2) {
-            throw new Error("Database Save Failed: " + (dbError.message || dbError2.message));
-          }
+          if (dbError2) throw new Error("Save error: " + dbError2.message);
         }
 
         statusMsg.className = "text-center text-[11px] text-green-400 font-semibold block";
-        statusMsg.innerText = `✓ Successfully uploaded with ${uploadedImageNames.length} image(s)!`;
+        statusMsg.innerText = `✓ Successfully saved with ${uploadedImageNames.length} image(s)!`;
 
         document.getElementById('admModel').value = '';
         document.getElementById('admBoard').value = '';
         document.getElementById('admSolution').value = '';
         document.getElementById('admImage').value = '';
+        document.getElementById('fileCountDisplay').innerText = "0 files selected";
 
         setTimeout(() => {
           statusMsg.classList.add('hidden');
@@ -230,9 +277,7 @@
       outputCard.classList.add('hidden');
 
       try {
-        const { data, error } = await db
-          .from('Tv Posts')
-          .select('*');
+        const { data, error } = await db.from('Tv Posts').select('*');
 
         let matched = false;
 
@@ -252,7 +297,7 @@
 
             filterData.forEach(post => {
               const card = document.createElement('div');
-              card.className = "bg-slate-800 p-4 rounded-xl border border-green-500/50 space-y-3 shadow-md";
+              card.className = "bg-slate-800 p-4 rounded-xl border border-green-500/50 space-y-3 shadow-md select-none";
               
               const rawImages = (post.circuit_image || post["Circuit image"] || "").trim();
               let imageTags = '';
@@ -261,13 +306,17 @@
                 const imgList = rawImages.split(',').map(s => s.trim()).filter(Boolean);
                 imageTags = `
                   <div class="space-y-2 mt-2">
-                    <p class="text-[11px] text-green-300 font-bold">Circuit / Fault Diagrams (${imgList.length}):</p>
-                    <div class="grid grid-cols-1 gap-2">
-                      ${imgList.map(imgName => `
-                        <a href="${SUPABASE_URL}/storage/v1/object/public/post-images/${imgName}" target="_blank">
-                          <img src="${SUPABASE_URL}/storage/v1/object/public/post-images/${imgName}" class="w-full rounded-lg border border-slate-700 shadow max-h-72 object-contain bg-black/40 hover:opacity-90 transition" alt="Circuit Diagram">
-                        </a>
-                      `).join('')}
+                    <p class="text-[11px] text-green-300 font-bold">Circuit Diagrams (${imgList.length}) - Tap to Zoom:</p>
+                    <div class="grid grid-cols-1 gap-2.5">
+                      ${imgList.map(imgName => {
+                        const fullUrl = `${SUPABASE_URL}/storage/v1/object/public/post-images/${imgName}`;
+                        return `
+                          <div class="relative bg-black/50 rounded-lg p-1 border border-slate-700">
+                            <img src="${fullUrl}" onclick="openZoomModal('${fullUrl}')" draggable="false" oncontextmenu="return false;" class="no-download w-full rounded cursor-pointer max-h-72 object-contain hover:opacity-90 active:scale-[0.99] transition" alt="Circuit Diagram">
+                            <span class="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] px-2 py-0.5 rounded pointer-events-none">🔍 View Fullscreen</span>
+                          </div>
+                        `;
+                      }).join('')}
                     </div>
                   </div>
                 `;
