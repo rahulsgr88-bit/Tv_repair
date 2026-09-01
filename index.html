@@ -11,6 +11,7 @@
 
   <div class="max-w-md mx-auto space-y-4">
     
+    <!-- Header -->
     <div class="bg-blue-600 p-4 rounded-xl shadow-lg flex items-center justify-between">
       <div>
         <h1 class="text-xl font-bold tracking-wide">RK ELECTRONICS</h1>
@@ -21,16 +22,18 @@
       </button>
     </div>
 
+    <!-- Search Form -->
     <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 shadow-md">
       <div>
         <label class="block text-sm font-medium mb-1.5 text-slate-300">TV Model / Board Number / Fault:</label>
-        <input type="text" id="modelInput" placeholder="e.g. demo or UA32FH4003" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+        <input type="text" id="modelInput" placeholder="e.g. demo or CA1235" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
       </div>
       <button onclick="searchInDatabase()" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg text-sm transition tracking-wider active:scale-[0.98]">
         Analyze & Search Solutions
       </button>
     </div>
 
+    <!-- Verified Database Posts -->
     <div id="verifiedPostsCard" class="hidden space-y-3">
       <h2 class="text-xs font-bold text-green-400 uppercase tracking-widest pl-1">
         ✓ Verified Master Solutions
@@ -38,6 +41,7 @@
       <div id="verifiedPostsList" class="space-y-3"></div>
     </div>
 
+    <!-- AI Diagnostic Output -->
     <div id="outputCard" class="hidden bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-2.5 shadow-md">
       <h2 class="text-sm font-bold text-blue-400">
         AI Instant Diagnostic Guide:
@@ -45,6 +49,7 @@
       <div id="resultContent" class="text-xs text-slate-200 whitespace-pre-line leading-relaxed pl-1"></div>
     </div>
 
+    <!-- ================= ADMIN PANEL SECTION ================= -->
     <div id="adminPanel" class="hidden bg-slate-800 p-4 rounded-xl border-2 border-yellow-500/50 space-y-3 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-700 pb-2">
         <h2 class="text-sm font-bold text-yellow-400 flex items-center gap-1.5">
@@ -56,22 +61,23 @@
       <div class="space-y-2.5 text-xs">
         <div>
           <label class="block text-slate-300 mb-1">Model Number:</label>
-          <input type="text" id="admModel" placeholder="e.g. UA32T4340AK" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500">
+          <input type="text" id="admModel" placeholder="e.g. CA1235 or UA32T4340AK" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500">
         </div>
 
         <div>
           <label class="block text-slate-300 mb-1">Board / Chassis Number:</label>
-          <input type="text" id="admBoard" placeholder="e.g. TP.SK506S.PB801" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500">
+          <input type="text" id="admBoard" placeholder="e.g. CA 1235 / TP.SK506S.PB801" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500">
         </div>
 
         <div>
           <label class="block text-slate-300 mb-1">Fault / Solution Details:</label>
-          <textarea id="admSolution" rows="3" placeholder="e.g. Backlight boost voltage low, replaced 47uF capacitor & removed protection resistor..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500"></textarea>
+          <textarea id="admSolution" rows="3" placeholder="e.g. Buck converter voltage details and on/off trick..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500"></textarea>
         </div>
 
         <div>
-          <label class="block text-slate-300 mb-1">Circuit / Fault Image (Optional):</label>
-          <input type="file" id="admImage" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-slate-400 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-yellow-500 file:text-slate-900">
+          <label class="block text-slate-300 mb-1">Circuit / Fault Images (Select 1 or Multiple):</label>
+          <input type="file" id="admImage" accept="image/*" multiple class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-slate-400 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-yellow-500 file:text-slate-900">
+          <p class="text-[10px] text-slate-400 mt-1">💡 Tip: Aap ek sath multiple images select kar sakte hain.</p>
         </div>
 
         <button onclick="uploadNewSolution()" id="admUploadBtn" class="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-2.5 rounded-lg text-xs transition active:scale-95 shadow">
@@ -80,7 +86,9 @@
         <p id="admStatusMsg" class="text-center text-[11px] hidden font-semibold"></p>
       </div>
     </div>
-    </div>
+    <!-- ======================================================== -->
+
+  </div>
 
   <script>
     const SUPABASE_URL = "https://zilgbuncmusoxgerluxs.supabase.co";
@@ -115,7 +123,8 @@
       const model = document.getElementById('admModel').value.trim();
       const board = document.getElementById('admBoard').value.trim();
       const solution = document.getElementById('admSolution').value.trim();
-      const imageFile = document.getElementById('admImage').files[0];
+      const fileInput = document.getElementById('admImage');
+      const files = fileInput.files;
       const uploadBtn = document.getElementById('admUploadBtn');
       const statusMsg = document.getElementById('admStatusMsg');
 
@@ -130,40 +139,56 @@
       statusMsg.innerText = "Connecting to Supabase...";
 
       try {
-        let uploadedImageName = "";
+        let uploadedImageNames = [];
 
-        if (imageFile) {
-          statusMsg.innerText = "Uploading Image...";
-          const cleanFileName = `${Date.now()}_${imageFile.name.replace(/\s+/g, '_')}`;
-          
-          const { data: imgData, error: imgError } = await db.storage
-            .from('post-images')
-            .upload(cleanFileName, imageFile);
+        // Upload all selected images
+        if (files && files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            statusMsg.innerText = `Uploading Image ${i + 1} of ${files.length}...`;
+            const file = files[i];
+            const cleanFileName = `${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+            
+            const { error: imgError } = await db.storage
+              .from('post-images')
+              .upload(cleanFileName, file);
 
-          if (imgError) {
-            throw new Error("Image Upload Failed: " + imgError.message);
+            if (imgError) {
+              throw new Error(`Image ${i+1} Upload Failed: ${imgError.message}`);
+            }
+            uploadedImageNames.push(cleanFileName);
           }
-          uploadedImageName = cleanFileName;
         }
 
         statusMsg.innerText = "Saving data to table...";
-        const { error: dbError } = await db
-          .from('Tv Posts')
-          .insert([
-            {
-              "Modal number": model,
-              "Board number": board,
-              "solution_details": solution,
-              "Circuit image": uploadedImageName
-            }
-          ]);
+        const imagesString = uploadedImageNames.join(',');
 
-        if (dbError) {
-          throw new Error("Database Save Failed: " + dbError.message);
+        // Check available columns dynamically to prevent schema cache errors
+        const payloadVariants = [
+          { "Modal number": model, "Board number": board, "solution_details": solution, "Circuit image": imagesString },
+          { "modal_number": model, "board_number": board, "solution_details": solution, "circuit_image": imagesString },
+          { "Modal number": model, "solution_details": solution, "Circuit image": imagesString },
+          { "modal_number": model, "solution_details": solution, "circuit_image": imagesString }
+        ];
+
+        let saveSuccess = false;
+        let lastError = null;
+
+        for (const payload of payloadVariants) {
+          const { error } = await db.from('Tv Posts').insert([payload]);
+          if (!error) {
+            saveSuccess = true;
+            break;
+          } else {
+            lastError = error;
+          }
+        }
+
+        if (!saveSuccess && lastError) {
+          throw new Error("Database Save Failed: " + lastError.message);
         }
 
         statusMsg.className = "text-center text-[11px] text-green-400 font-semibold block";
-        statusMsg.innerText = "✓ Solution successfully uploaded!";
+        statusMsg.innerText = `✓ Successfully uploaded with ${uploadedImageNames.length} image(s)!`;
 
         document.getElementById('admModel').value = '';
         document.getElementById('admBoard').value = '';
@@ -217,8 +242,8 @@
           const filterData = data.filter(p => {
             const m = (p.modal_number || p["Modal number"] || "").toLowerCase();
             const b = (p.board_number || p["Board number"] || "").toLowerCase();
-            const img = (p.circuit_image || p["Circuit image"] || "").toLowerCase();
-            return m.includes(q) || b.includes(q) || img.includes(q);
+            const s = (p.solution_details || p["solution_details"] || "").toLowerCase();
+            return m.includes(q) || b.includes(q) || s.includes(q);
           });
 
           if (filterData.length > 0) {
@@ -227,12 +252,25 @@
 
             filterData.forEach(post => {
               const card = document.createElement('div');
-              card.className = "bg-slate-800 p-4 rounded-xl border border-green-500/50 space-y-2.5 shadow-md";
+              card.className = "bg-slate-800 p-4 rounded-xl border border-green-500/50 space-y-3 shadow-md";
               
-              const imageName = (post.circuit_image || post["Circuit image"] || "").trim();
-              let imageUrl = '';
-              if (imageName) {
-                imageUrl = `${SUPABASE_URL}/storage/v1/object/public/post-images/${imageName}`;
+              const rawImages = (post.circuit_image || post["Circuit image"] || "").trim();
+              let imageTags = '';
+              
+              if (rawImages) {
+                const imgList = rawImages.split(',').map(s => s.trim()).filter(Boolean);
+                imageTags = `
+                  <div class="space-y-2 mt-2">
+                    <p class="text-[11px] text-green-300 font-bold">Circuit / Fault Diagrams (${imgList.length}):</p>
+                    <div class="grid grid-cols-1 gap-2">
+                      ${imgList.map(imgName => `
+                        <a href="${SUPABASE_URL}/storage/v1/object/public/post-images/${imgName}" target="_blank">
+                          <img src="${SUPABASE_URL}/storage/v1/object/public/post-images/${imgName}" class="w-full rounded-lg border border-slate-700 shadow max-h-72 object-contain bg-black/40 hover:opacity-90 transition" alt="Circuit Diagram">
+                        </a>
+                      `).join('')}
+                    </div>
+                  </div>
+                `;
               }
 
               const solution = post.solution_details || post["solution_details"] || "Solution details available in diagram.";
@@ -248,7 +286,7 @@
                 <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
                   <p class="text-xs text-slate-200 leading-relaxed"><strong class="text-green-400">Fix:</strong> ${solution}</p>
                 </div>
-                ${imageUrl ? `<img src="${imageUrl}" class="w-full rounded-lg border border-slate-700 mt-2 shadow max-h-80 object-contain bg-black/40" alt="Circuit Diagram">` : ''}
+                ${imageTags}
               `;
               verifiedPostsList.appendChild(card);
             });
@@ -283,7 +321,6 @@
 4. Backlight Driver / Inverter Protection Points
 5. Step-by-step troubleshooting recommendations.`;
 
-        // Direct Cloudflare/Duck AI Gateway (Zero API Key, No blocking)
         const response = await fetch("https://text.pollinations.ai/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -301,40 +338,16 @@
           const text = await response.text();
           resultContent.innerText = text.trim();
         } else {
-          // Fallback Smart TV Diagnostic Logic
           resultContent.innerHTML = `
-<strong>📌 Instant Diagnostic Reference for "${query}":</strong>
-
-1. <strong>Power Supply / Standby Check:</strong>
-   • Main 12V supply filter capacitor par check karein.
-   • Standby Regulator se 3.3V / 5V DC mother board ko ja raha hai ya nahi.
-
-2. <strong>Motherboard Regulators (DC to DC):</strong>
-   • Core Voltage: 1.15V - 1.2V (Processor supply)
-   • DDR RAM Voltage: 1.5V (DDR3) / 1.8V (DDR2)
-   • SPI Flash ROM Pin 8: 3.3V DC
-
-3. <strong>Panel / T-Con Critical Test Points:</strong>
-   • Panel VCC: 12V (or 5V for small panels)
-   • VGH: +26V to +32V (Gate High)
-   • VGL: -5V to -8V (Gate Low)
-   • AVDD: +14V to +17V (Source Driver)
-   • VCOM: +5V to +7V
-
-4. <strong>Backlight / Inverter:</strong>
-   • BL_ON / ENA Signal: 3.3V
-   • Dimming (ADJ/PWM): 1.5V - 3.3V
-   • Boost Voltage: LED Strings open hone par boost hoke drop ho jata hai.
+<strong>📌 Instant Diagnostic Reference for "${query}":</strong><br>
+1. <strong>Power Supply:</strong> Check 12V / 5V Standby line.<br>
+2. <strong>Motherboard Core:</strong> Check 1.2V Core & 3.3V Flash pin 8.<br>
+3. <strong>Panel T-Con:</strong> Check VGH (+28V) and VGL (-6V).<br>
+4. <strong>Backlight:</strong> Check BL_ON (3.3V) & boost diode.
           `;
         }
       } catch (err) {
-        resultContent.innerHTML = `
-<strong>📌 Standard Diagnostic Check Points:</strong><br>
-1. <strong>12V Main Supply:</strong> Check electrolytic capacitors on secondary side.<br>
-2. <strong>3.3V / 1.2V Regulators:</strong> Check core IC voltage.<br>
-3. <strong>Panel Signals:</strong> Check LVDS pair resistance and VGH (+28V) / VGL (-6V).<br>
-4. <strong>Backlight Driver:</strong> Check boost diode and LED strip continuity.
-        `;
+        resultContent.innerHTML = `<span class="text-slate-400">Diagnosis ready for ${query}. Check standard power & panel lines.</span>`;
       }
     }
   </script>
