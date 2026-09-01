@@ -2,28 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RK ELECTRONICS - LED TV Repair Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Prevent image downloading, dragging, and context menu */
+    /* Prevent image downloading and long press save */
     img {
       -webkit-touch-callout: none !important;
       -webkit-user-select: none !important;
-      -khtml-user-select: none !important;
-      -moz-user-select: none !important;
-      -ms-user-select: none !important;
       user-select: none !important;
-      pointer-events: auto;
-    }
-    .no-download {
       -webkit-user-drag: none;
-      user-drag: none;
-    }
-    .zoomable-img {
-      touch-action: pinch-zoom;
-      transition: transform 0.2s ease;
     }
   </style>
 </head>
@@ -31,7 +20,6 @@
 
   <div class="max-w-md mx-auto space-y-4">
     
-    <!-- Header -->
     <div class="bg-blue-600 p-4 rounded-xl shadow-lg flex items-center justify-between">
       <div>
         <h1 class="text-xl font-bold tracking-wide">RK ELECTRONICS</h1>
@@ -42,7 +30,6 @@
       </button>
     </div>
 
-    <!-- Search Form -->
     <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 shadow-md">
       <div>
         <label class="block text-sm font-medium mb-1.5 text-slate-300">TV Model / Board Number / Fault:</label>
@@ -53,7 +40,6 @@
       </button>
     </div>
 
-    <!-- Verified Database Posts -->
     <div id="verifiedPostsCard" class="hidden space-y-3">
       <h2 class="text-xs font-bold text-green-400 uppercase tracking-widest pl-1">
         ✓ Verified Master Solutions
@@ -61,7 +47,6 @@
       <div id="verifiedPostsList" class="space-y-3"></div>
     </div>
 
-    <!-- AI Diagnostic Output -->
     <div id="outputCard" class="hidden bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-2.5 shadow-md">
       <h2 class="text-sm font-bold text-blue-400">
         AI Instant Diagnostic Guide:
@@ -69,7 +54,6 @@
       <div id="resultContent" class="text-xs text-slate-200 whitespace-pre-line leading-relaxed pl-1"></div>
     </div>
 
-    <!-- ================= ADMIN PANEL SECTION ================= -->
     <div id="adminPanel" class="hidden bg-slate-800 p-4 rounded-xl border-2 border-yellow-500/50 space-y-3 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-700 pb-2">
         <h2 class="text-sm font-bold text-yellow-400 flex items-center gap-1.5">
@@ -94,10 +78,24 @@
           <textarea id="admSolution" rows="3" placeholder="e.g. Buck converter voltage details and on/off trick..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500"></textarea>
         </div>
 
-        <div>
-          <label class="block text-slate-300 mb-1">Circuit / Fault Images (Multiple Photos Supported):</label>
-          <input type="file" id="admImage" accept="image/*" multiple="multiple" onchange="updateSelectedFilesCount()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-slate-400 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-yellow-500 file:text-slate-900">
-          <p id="fileCountDisplay" class="text-[11px] text-yellow-400 font-semibold mt-1">0 files selected (Gallery me long-press karke multiple select karein)</p>
+        <div class="space-y-2 bg-slate-900/60 p-2.5 rounded-lg border border-slate-700">
+          <label class="block text-yellow-400 font-bold">Select Circuit / Fault Photos:</label>
+          <div>
+            <span class="text-[10px] text-slate-400">Photo 1 (Main):</span>
+            <input type="file" id="admImage1" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded p-1 text-slate-300 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-yellow-500 file:text-slate-900">
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400">Photo 2 (Optional):</span>
+            <input type="file" id="admImage2" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded p-1 text-slate-300 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-700 file:text-slate-200">
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400">Photo 3 (Optional):</span>
+            <input type="file" id="admImage3" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded p-1 text-slate-300 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-700 file:text-slate-200">
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400">Photo 4 (Optional):</span>
+            <input type="file" id="admImage4" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded p-1 text-slate-300 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-700 file:text-slate-200">
+          </div>
         </div>
 
         <button onclick="uploadNewSolution()" id="admUploadBtn" class="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-2.5 rounded-lg text-xs transition active:scale-95 shadow">
@@ -106,17 +104,24 @@
         <p id="admStatusMsg" class="text-center text-[11px] hidden font-semibold"></p>
       </div>
     </div>
-    <!-- ======================================================== -->
-
-  </div>
-
-  <!-- Fullscreen Zoom Modal (View Only - No Download) -->
-  <div id="imageModal" class="fixed inset-0 bg-black/95 z-50 hidden flex flex-col items-center justify-center p-2 select-none" oncontextmenu="return false;">
-    <button onclick="closeZoomModal()" class="absolute top-4 right-4 bg-slate-800 text-white font-bold px-4 py-2 rounded-full text-xs border border-slate-600 active:scale-90">✕ Close</button>
-    <div class="overflow-auto max-h-[85vh] max-w-[95vw] flex items-center justify-center">
-      <img id="modalImg" src="" draggable="false" oncontextmenu="return false;" class="zoomable-img no-download max-w-none w-full object-contain" alt="Circuit View">
     </div>
-    <p class="text-slate-400 text-[11px] mt-2">🔍 Pinch / Double-tap karke zoom karein (Protected View)</p>
+
+  <div id="imageModal" class="fixed inset-0 bg-black/95 z-50 hidden flex flex-col justify-between p-3 select-none" oncontextmenu="return false;">
+    
+    <div class="flex items-center justify-between bg-slate-900/90 p-2.5 rounded-xl border border-slate-700">
+      <span class="text-xs text-yellow-400 font-bold">🔍 Circuit Inspector</span>
+      <button onclick="closeZoomModal()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs active:scale-95">✕ Close</button>
+    </div>
+
+    <div id="zoomContainer" class="overflow-auto flex-1 my-2 flex items-center justify-center p-1" style="max-height: 72vh;">
+      <img id="modalImg" src="" draggable="false" oncontextmenu="return false;" style="transform: scale(1); transform-origin: center center; transition: transform 0.15s ease;" class="max-w-full rounded object-contain" alt="Circuit View">
+    </div>
+
+    <div class="flex items-center justify-center gap-3 bg-slate-900/90 p-2 rounded-xl border border-slate-700">
+      <button onclick="changeZoom(-0.3)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-lg text-sm border border-slate-600 active:scale-90">➖ Zoom Out</button>
+      <button onclick="resetZoom()" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 font-bold px-3 py-2 rounded-lg text-xs border border-slate-600 active:scale-90">↺ Reset</button>
+      <button onclick="changeZoom(0.3)" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-sm active:scale-90">➕ Zoom In</button>
+    </div>
   </div>
 
   <script>
@@ -128,6 +133,7 @@
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let isAdminLoggedIn = false;
+    let currentZoomLevel = 1.0;
 
     function toggleAdminPanel() {
       const panel = document.getElementById('adminPanel');
@@ -148,19 +154,11 @@
       }
     }
 
-    function updateSelectedFilesCount() {
-      const files = document.getElementById('admImage').files;
-      const countDisplay = document.getElementById('fileCountDisplay');
-      if (files.length > 0) {
-        countDisplay.innerText = `✓ Total ${files.length} photo(s) selected for upload`;
-      } else {
-        countDisplay.innerText = "0 files selected";
-      }
-    }
-
     function openZoomModal(imgSrc) {
       const modal = document.getElementById('imageModal');
       const img = document.getElementById('modalImg');
+      currentZoomLevel = 1.0;
+      img.style.transform = `scale(${currentZoomLevel})`;
       img.src = imgSrc;
       modal.classList.remove('hidden');
     }
@@ -169,12 +167,21 @@
       document.getElementById('imageModal').classList.add('hidden');
     }
 
+    function changeZoom(amount) {
+      currentZoomLevel = Math.max(0.6, Math.min(4.0, currentZoomLevel + amount));
+      const img = document.getElementById('modalImg');
+      img.style.transform = `scale(${currentZoomLevel})`;
+    }
+
+    function resetZoom() {
+      currentZoomLevel = 1.0;
+      document.getElementById('modalImg').style.transform = `scale(1)`;
+    }
+
     async function uploadNewSolution() {
       const model = document.getElementById('admModel').value.trim();
       const board = document.getElementById('admBoard').value.trim();
       const solution = document.getElementById('admSolution').value.trim();
-      const fileInput = document.getElementById('admImage');
-      const files = fileInput.files;
       const uploadBtn = document.getElementById('admUploadBtn');
       const statusMsg = document.getElementById('admStatusMsg');
 
@@ -182,6 +189,21 @@
         alert("Model Number aur Solution likhna zaroori hai.");
         return;
       }
+
+      // Collect all selected images from the 4 slots
+      const fileInputs = [
+        document.getElementById('admImage1'),
+        document.getElementById('admImage2'),
+        document.getElementById('admImage3'),
+        document.getElementById('admImage4')
+      ];
+
+      const selectedFiles = [];
+      fileInputs.forEach(inp => {
+        if (inp && inp.files && inp.files[0]) {
+          selectedFiles.push(inp.files[0]);
+        }
+      });
 
       uploadBtn.disabled = true;
       uploadBtn.innerText = "Uploading... Please wait...";
@@ -191,10 +213,10 @@
       try {
         let uploadedImageNames = [];
 
-        if (files && files.length > 0) {
-          for (let i = 0; i < files.length; i++) {
-            statusMsg.innerText = `Uploading image ${i + 1} of ${files.length}...`;
-            const file = files[i];
+        if (selectedFiles.length > 0) {
+          for (let i = 0; i < selectedFiles.length; i++) {
+            statusMsg.innerText = `Uploading photo ${i + 1} of ${selectedFiles.length}...`;
+            const file = selectedFiles[i];
             const cleanFileName = `${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
             
             const { error: imgError } = await db.storage
@@ -202,7 +224,7 @@
               .upload(cleanFileName, file);
 
             if (imgError) {
-              throw new Error(`Image ${i+1} upload failed: ` + imgError.message);
+              throw new Error(`Photo ${i+1} upload failed: ` + imgError.message);
             }
             uploadedImageNames.push(cleanFileName);
           }
@@ -239,8 +261,7 @@
         document.getElementById('admModel').value = '';
         document.getElementById('admBoard').value = '';
         document.getElementById('admSolution').value = '';
-        document.getElementById('admImage').value = '';
-        document.getElementById('fileCountDisplay').innerText = "0 files selected";
+        fileInputs.forEach(inp => inp.value = '');
 
         setTimeout(() => {
           statusMsg.classList.add('hidden');
@@ -306,14 +327,14 @@
                 const imgList = rawImages.split(',').map(s => s.trim()).filter(Boolean);
                 imageTags = `
                   <div class="space-y-2 mt-2">
-                    <p class="text-[11px] text-green-300 font-bold">Circuit Diagrams (${imgList.length}) - Tap to Zoom:</p>
+                    <p class="text-[11px] text-green-300 font-bold">Circuit Diagrams (${imgList.length}) - Tap to Inspect:</p>
                     <div class="grid grid-cols-1 gap-2.5">
                       ${imgList.map(imgName => {
                         const fullUrl = `${SUPABASE_URL}/storage/v1/object/public/post-images/${imgName}`;
                         return `
                           <div class="relative bg-black/50 rounded-lg p-1 border border-slate-700">
-                            <img src="${fullUrl}" onclick="openZoomModal('${fullUrl}')" draggable="false" oncontextmenu="return false;" class="no-download w-full rounded cursor-pointer max-h-72 object-contain hover:opacity-90 active:scale-[0.99] transition" alt="Circuit Diagram">
-                            <span class="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] px-2 py-0.5 rounded pointer-events-none">🔍 View Fullscreen</span>
+                            <img src="${fullUrl}" onclick="openZoomModal('${fullUrl}')" draggable="false" oncontextmenu="return false;" class="w-full rounded cursor-pointer max-h-72 object-contain hover:opacity-90 active:scale-[0.99] transition" alt="Circuit Diagram">
+                            <span class="absolute bottom-2 right-2 bg-blue-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow pointer-events-none">🔍 Tap to Zoom & Inspect</span>
                           </div>
                         `;
                       }).join('')}
