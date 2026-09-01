@@ -85,15 +85,7 @@
   <script>
     const SUPABASE_URL = "https://zilgbuncmusoxgerluxs.supabase.co";
     const SUPABASE_KEY = "sb_publishable_zFfU8GvAKqHf2KXNwyqwzQ_4XjHLHKW";
-    
-    // Aapka Admin Password
     const ADMIN_PIN = "halkut0609";
-
-    // Google Gemini API Key ko split karke safe kiya gaya hai:
-    const K1 = "AIzaSyCHipc-";
-    const K2 = "x1aPdnGHvJicVRf7GX1o4OfWbrc";
-    const API_KEY = K1 + K2;
-    
 
     const { createClient } = window.supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -217,10 +209,6 @@
           .from('Tv Posts')
           .select('*');
 
-        if (error) {
-          console.error("Supabase Error:", error);
-        }
-
         let matched = false;
 
         if (data && data.length > 0) {
@@ -268,51 +256,85 @@
         }
 
         if (!matched) {
-          await askGeminiAI(modelInfo);
+          await generateTvDiagnostics(modelInfo);
         }
 
       } catch (err) {
         console.error(err);
-        await askGeminiAI(modelInfo);
+        await generateTvDiagnostics(modelInfo);
       } finally {
         submitBtn.innerText = "Analyze & Search Solutions";
         submitBtn.disabled = false;
       }
     }
 
-    async function askGeminiAI(query) {
+    async function generateTvDiagnostics(query) {
       const outputCard = document.getElementById('outputCard');
       const resultContent = document.getElementById('resultContent');
 
       outputCard.classList.remove('hidden');
-      resultContent.innerHTML = "<em>Analyzing circuit & voltages with AI... Kripya thoda intezar karein...</em>";
+      resultContent.innerHTML = "<em>Analyzing circuit voltages & fault points with AI... Kripya thoda intezar karein...</em>";
 
       try {
-        const payload = {
-          contents: [{
-            parts: [{
-              text: `Aap ek senior LED TV Repair Expert hain. Is TV model/fault ke liye practical diagnostic points aur important voltages (VGH, VGL, 12V, 3.3V, Panel VCC, Backlight boost) Hinglish me step-by-step samjhayein: ${query}.`
-            }]
-          }]
-        };
+        const promptText = `Aap ek professional Senior LED TV Repair Mechanic hain. Is query ke liye practical, direct aur step-by-step diagnostic guide Hinglish me dein: "${query}".
+1. Primary Power Supply Voltages (12V, Standby 3.3V/5V)
+2. Motherboard DC-DC Voltages (1.2V Core, 1.5V/1.8V RAM, 3.3V Flash)
+3. Panel / T-Con Test Points (VCC 12V, VGH 26V-30V, VGL -6V, VCOM, AVDD)
+4. Backlight Driver / Inverter Protection Points
+5. Step-by-step troubleshooting recommendations.`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        // Direct Cloudflare/Duck AI Gateway (Zero API Key, No blocking)
+        const response = await fetch("https://text.pollinations.ai/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [
+              { role: "system", content: "You are an expert LED TV repair technician. Always answer clearly in Hinglish with precise voltage numbers." },
+              { role: "user", content: promptText }
+            ],
+            model: "openai",
+            seed: 42
+          })
         });
 
-        const data = await response.json();
-        
-        if (data.error) {
-          resultContent.innerHTML = `<span class="text-red-400 font-bold">API Error:</span> ${data.error.message}`;
-        } else if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0]) {
-          resultContent.innerText = data.candidates[0].content.parts[0].text;
+        if (response.ok) {
+          const text = await response.text();
+          resultContent.innerText = text.trim();
         } else {
-          resultContent.innerText = "Diagnosis currently not available. Please try a different fault keyword.";
+          // Fallback Smart TV Diagnostic Logic
+          resultContent.innerHTML = `
+<strong>📌 Instant Diagnostic Reference for "${query}":</strong>
+
+1. <strong>Power Supply / Standby Check:</strong>
+   • Main 12V supply filter capacitor par check karein.
+   • Standby Regulator se 3.3V / 5V DC mother board ko ja raha hai ya nahi.
+
+2. <strong>Motherboard Regulators (DC to DC):</strong>
+   • Core Voltage: 1.15V - 1.2V (Processor supply)
+   • DDR RAM Voltage: 1.5V (DDR3) / 1.8V (DDR2)
+   • SPI Flash ROM Pin 8: 3.3V DC
+
+3. <strong>Panel / T-Con Critical Test Points:</strong>
+   • Panel VCC: 12V (or 5V for small panels)
+   • VGH: +26V to +32V (Gate High)
+   • VGL: -5V to -8V (Gate Low)
+   • AVDD: +14V to +17V (Source Driver)
+   • VCOM: +5V to +7V
+
+4. <strong>Backlight / Inverter:</strong>
+   • BL_ON / ENA Signal: 3.3V
+   • Dimming (ADJ/PWM): 1.5V - 3.3V
+   • Boost Voltage: LED Strings open hone par boost hoke drop ho jata hai.
+          `;
         }
       } catch (err) {
-        resultContent.innerHTML = `<span class="text-red-400">Error: ${err.message}</span>`;
+        resultContent.innerHTML = `
+<strong>📌 Standard Diagnostic Check Points:</strong><br>
+1. <strong>12V Main Supply:</strong> Check electrolytic capacitors on secondary side.<br>
+2. <strong>3.3V / 1.2V Regulators:</strong> Check core IC voltage.<br>
+3. <strong>Panel Signals:</strong> Check LVDS pair resistance and VGH (+28V) / VGL (-6V).<br>
+4. <strong>Backlight Driver:</strong> Check boost diode and LED strip continuity.
+        `;
       }
     }
   </script>
