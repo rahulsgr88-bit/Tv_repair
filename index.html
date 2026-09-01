@@ -92,12 +92,12 @@
   <script>
     const SUPABASE_URL = "https://zilgbuncmusoxgerluxs.supabase.co";
     const SUPABASE_KEY = "sb_publishable_zFfU8GvAKqHf2KXNwyqwzQ_4XjHLHKW";
-    const API_KEY = "AQ.Ab8RN6KNaiDbPDSyrHoreuP_iISWKJia9OUM-jwInbfhkRyBYA";
     
-    // ==========================================
-    // APNA NAYA PASSWORD YAHA LIKHEIN:
-    const ADMIN_PIN = "halkut0609"; // <-- Yahan apna password badlein
-    // ==========================================
+    // Aapka secret admin password:
+    const ADMIN_PIN = "halkut0609";
+
+    // Google Gemini API Key:
+    const API_KEY = "AQ.Ab8RN6KlZeP3blkwQmm6dMeupJB_BUfRj758dNoTIYCHH0W_KA";
 
     const { createClient } = window.supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -108,12 +108,12 @@
       const panel = document.getElementById('adminPanel');
       if (panel.classList.contains('hidden')) {
         if (!isAdminLoggedIn) {
-          const pin = prompt("Admin Security PIN enter karein:");
+          const pin = prompt("Admin Security Password enter karein:");
           if (pin === ADMIN_PIN) {
             isAdminLoggedIn = true;
             panel.classList.remove('hidden');
           } else if (pin !== null) {
-            alert("Galat Password / PIN!");
+            alert("Galat Password!");
           }
         } else {
           panel.classList.remove('hidden');
@@ -305,13 +305,16 @@
         });
 
         const data = await response.json();
-        if (data.candidates && data.candidates[0].content) {
+        
+        if (data.error) {
+          resultContent.innerHTML = `<span class="text-red-400">API Error: ${data.error.message || 'Key invalid'}</span><br><br>Agar API Key expire ho gayi hai toh <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-400 underline">Google AI Studio</a> se free key lekar GitHub me replace karein.`;
+        } else if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0]) {
           resultContent.innerText = data.candidates[0].content.parts[0].text;
         } else {
-          resultContent.innerText = "Diagnosis not available right now.";
+          resultContent.innerText = "Diagnosis currently not available. Please check model number.";
         }
       } catch (err) {
-        resultContent.innerText = "Error: " + err.message;
+        resultContent.innerHTML = `<span class="text-red-400">Network / AI Error: ${err.message}</span>`;
       }
     }
   </script>
