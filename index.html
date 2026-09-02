@@ -2,24 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>RK ELECTRONICS - LED TV Repair Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Prevent image downloading and long press save */
     img {
       -webkit-touch-callout: none !important;
       -webkit-user-select: none !important;
       user-select: none !important;
       -webkit-user-drag: none;
     }
-    #zoomContainer {
-      touch-action: none;
-    }
+    .touch-none-all { touch-action: none !important; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans pb-20 select-none" oncontextmenu="return false;">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans pb-24 select-none" oncontextmenu="return false;">
 
   <div class="max-w-md mx-auto space-y-4">
     
@@ -34,6 +31,16 @@
       </button>
     </div>
 
+    <!-- Community & Direct Connect Bar -->
+    <div class="grid grid-cols-2 gap-2 text-center text-xs font-bold">
+      <a href="https://wa.me/91XXXXXXXXXX" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 active:scale-95 transition">
+        <span>💬</span> WhatsApp Channel
+      </a>
+      <a href="https://t.me/your_telegram_channel" target="_blank" class="bg-sky-600 hover:bg-sky-500 text-white p-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 active:scale-95 transition">
+        <span>✈️</span> Telegram Hub
+      </a>
+    </div>
+
     <!-- Search Form -->
     <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 shadow-md">
       <div>
@@ -42,6 +49,11 @@
       </div>
       <button onclick="searchInDatabase()" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg text-sm transition tracking-wider active:scale-[0.98]">
         Analyze & Search Solutions
+      </button>
+      
+      <!-- Open User Request Form -->
+      <button onclick="toggleUserRequestModal()" class="w-full text-center text-xs text-yellow-400 hover:text-yellow-300 underline font-semibold pt-1">
+        Board nahi mila? Yahan Solution Request Dalein ➔
       </button>
     </div>
 
@@ -61,48 +73,87 @@
       <div id="resultContent" class="text-xs text-slate-200 whitespace-pre-line leading-relaxed pl-1"></div>
     </div>
 
+    <!-- ================= USER REQUEST MODAL ================= -->
+    <div id="userRequestModal" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+      <div class="bg-slate-800 border border-yellow-500/60 w-full max-w-sm rounded-xl p-4 space-y-3 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+          <h3 class="text-sm font-bold text-yellow-400">📝 Request Board Solution</h3>
+          <button onclick="toggleUserRequestModal()" class="text-xs text-slate-400 hover:text-white px-2 py-1">✕</button>
+        </div>
+        <div class="space-y-2.5 text-xs">
+          <div>
+            <label class="block text-slate-300 mb-1">Aapka Naam / WhatsApp No:</label>
+            <input type="text" id="reqContact" placeholder="e.g. Ramesh - 98XXXXXXXX" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white">
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1">TV Model Number:</label>
+            <input type="text" id="reqModel" placeholder="e.g. UA32T4340" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white">
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1">Board / Chassis Number:</label>
+            <input type="text" id="reqBoard" placeholder="e.g. TP.SK506S.PB801" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white">
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1">Fault Kya Hai?:</label>
+            <textarea id="reqFault" rows="2" placeholder="e.g. Red light blinking 5 times / No sound..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-white"></textarea>
+          </div>
+          <button onclick="submitUserRequest()" id="btnSubmitReq" class="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-2.5 rounded-lg text-xs transition active:scale-95 shadow">
+            Send Request to RK Electronics
+          </button>
+          <p id="reqStatusMsg" class="text-center text-[11px] hidden font-semibold"></p>
+        </div>
+      </div>
+    </div>
+
     <!-- ================= ADMIN PANEL SECTION ================= -->
-    <div id="adminPanel" class="hidden bg-slate-800 p-4 rounded-xl border-2 border-yellow-500/50 space-y-3 shadow-xl">
+    <div id="adminPanel" class="hidden bg-slate-800 p-4 rounded-xl border-2 border-yellow-500/50 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-700 pb-2">
         <h2 class="text-sm font-bold text-yellow-400 flex items-center gap-1.5">
-          <span>➕</span> Add TV Fault Solution
+          <span>⚙</span> Admin Control Center
         </h2>
         <button onclick="toggleAdminPanel()" class="text-xs text-slate-400 hover:text-white px-2 py-1">✕ Close</button>
       </div>
 
-      <div class="space-y-2.5 text-xs">
+      <!-- Quick Tab Buttons -->
+      <div class="flex gap-2 text-xs font-bold border-b border-slate-700 pb-2">
+        <button onclick="switchAdminTab('upload')" id="tabUploadBtn" class="flex-1 bg-yellow-500 text-slate-900 py-1.5 rounded-lg">Upload Solution</button>
+        <button onclick="switchAdminTab('requests')" id="tabRequestsBtn" class="flex-1 bg-slate-700 text-slate-300 py-1.5 rounded-lg">View Requests <span id="reqBadge" class="bg-red-500 text-white rounded-full px-1.5 py-0.2 text-[10px]">0</span></button>
+      </div>
+
+      <!-- TAB 1: UPLOAD -->
+      <div id="adminUploadTab" class="space-y-2.5 text-xs">
         <div>
-          <label class="block text-slate-300 mb-1">Model Number:</label>
-          <input type="text" id="admModel" placeholder="e.g. CA1235 or UA32T4340AK" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500">
+          <label class="block text-slate-300 mb-1">Model Number(s):</label>
+          <input type="text" id="admModel" placeholder="e.g. UA32T4340AK, UA32N4003" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white">
         </div>
 
         <div>
           <label class="block text-slate-300 mb-1">Board / Chassis Number:</label>
-          <input type="text" id="admBoard" placeholder="e.g. CA 1235 / TP.SK506S.PB801" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500">
+          <input type="text" id="admBoard" placeholder="e.g. CA 1235 / TP.SK506S.PB801" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white">
         </div>
 
         <div>
           <label class="block text-slate-300 mb-1">Fault / Solution Details:</label>
-          <textarea id="admSolution" rows="3" placeholder="e.g. Buck converter voltage details and on/off trick..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500"></textarea>
+          <textarea id="admSolution" rows="3" placeholder="e.g. Buck converter voltage details and on/off trick..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white"></textarea>
         </div>
 
         <!-- 4 Separate Photo Slots -->
         <div class="space-y-2 bg-slate-900/60 p-2.5 rounded-lg border border-slate-700">
-          <label class="block text-yellow-400 font-bold">Select Circuit / Fault Photos:</label>
+          <label class="block text-yellow-400 font-bold">Circuit / Fault Photos:</label>
           <div>
             <span class="text-[10px] text-slate-400">Photo 1 (Main):</span>
             <input type="file" id="admImage1" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded p-1 text-slate-300 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-yellow-500 file:text-slate-900">
           </div>
           <div>
-            <span class="text-[10px] text-slate-400">Photo 2 (Optional):</span>
+            <span class="text-[10px] text-slate-400">Photo 2:</span>
             <input type="file" id="admImage2" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded p-1 text-slate-300 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-700 file:text-slate-200">
           </div>
           <div>
-            <span class="text-[10px] text-slate-400">Photo 3 (Optional):</span>
+            <span class="text-[10px] text-slate-400">Photo 3:</span>
             <input type="file" id="admImage3" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded p-1 text-slate-300 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-700 file:text-slate-200">
           </div>
           <div>
-            <span class="text-[10px] text-slate-400">Photo 4 (Optional):</span>
+            <span class="text-[10px] text-slate-400">Photo 4:</span>
             <input type="file" id="admImage4" accept="image/*" class="w-full bg-slate-900 border border-slate-600 rounded p-1 text-slate-300 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-700 file:text-slate-200">
           </div>
         </div>
@@ -112,30 +163,43 @@
         </button>
         <p id="admStatusMsg" class="text-center text-[11px] hidden font-semibold"></p>
       </div>
+
+      <!-- TAB 2: REQUESTS LIST (App ke andar direct dekhein aur delete karein) -->
+      <div id="adminRequestsTab" class="hidden space-y-2.5 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400 text-[11px]">Mechanics ki aayi hui requests:</span>
+          <button onclick="loadUserRequests()" class="text-yellow-400 underline text-[11px]">🔄 Refresh</button>
+        </div>
+        <div id="adminRequestsList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+          <p class="text-slate-500 text-center py-4">Loading requests...</p>
+        </div>
+      </div>
+
     </div>
     <!-- ======================================================== -->
 
   </div>
 
-  <!-- 4-Way Drag & Smooth Zoom Modal -->
-  <div id="imageModal" class="fixed inset-0 bg-black/95 z-50 hidden flex flex-col justify-between p-3 select-none" oncontextmenu="return false;">
-    
-    <!-- Top Bar -->
-    <div class="flex items-center justify-between bg-slate-900/90 p-2.5 rounded-xl border border-slate-700 z-10">
-      <span class="text-xs text-yellow-400 font-bold">🔍 Circuit Inspector (Drag anywhere)</span>
+  <!-- 4-Way Smooth Inspector Modal -->
+  <div id="imageModal" class="fixed inset-0 bg-black/95 z-50 hidden flex flex-col justify-between p-3 select-none touch-none-all" oncontextmenu="return false;">
+    <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-700 z-20">
+      <div>
+        <span class="text-xs text-yellow-400 font-bold">🔍 Circuit Inspector</span>
+        <p class="text-[10px] text-slate-400">Drag in all directions | Double-tap to zoom</p>
+      </div>
       <button onclick="closeZoomModal()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs active:scale-95">✕ Close</button>
     </div>
 
-    <!-- Drag & Move Viewport -->
-    <div id="zoomContainer" class="relative overflow-hidden flex-1 my-2 flex items-center justify-center bg-black/40 rounded-xl border border-slate-800 cursor-grab active:cursor-grabbing">
-      <img id="modalImg" src="" draggable="false" oncontextmenu="return false;" style="transform: translate(0px, 0px) scale(1); transform-origin: center center; cursor: grab;" class="max-w-full max-h-full object-contain pointer-events-auto select-none" alt="Circuit View">
+    <div id="zoomContainer" class="relative overflow-hidden flex-1 my-2 flex items-center justify-center bg-black/60 rounded-xl border border-slate-800 touch-none-all">
+      <div id="transformWrapper" class="inline-block transition-transform duration-75 ease-out touch-none-all">
+        <img id="modalImg" src="" draggable="false" oncontextmenu="return false;" class="max-w-[90vw] max-h-[65vh] object-contain pointer-events-none select-none rounded shadow-2xl" alt="Circuit View">
+      </div>
     </div>
 
-    <!-- Bottom Controls -->
-    <div class="flex items-center justify-center gap-3 bg-slate-900/90 p-2 rounded-xl border border-slate-700 z-10">
-      <button onclick="changeZoom(-0.4)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-lg text-sm border border-slate-600 active:scale-90">➖ Zoom Out</button>
+    <div class="flex items-center justify-center gap-3 bg-slate-900 p-2 rounded-xl border border-slate-700 z-20">
+      <button onclick="changeZoom(-0.5)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-lg text-sm border border-slate-600 active:scale-90">➖ Zoom Out</button>
       <button onclick="resetZoom()" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 font-bold px-3 py-2 rounded-lg text-xs border border-slate-600 active:scale-90">↺ Reset</button>
-      <button onclick="changeZoom(0.4)" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-sm active:scale-90">➕ Zoom In</button>
+      <button onclick="changeZoom(0.5)" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-sm active:scale-90">➕ Zoom In</button>
     </div>
   </div>
 
@@ -149,77 +213,54 @@
 
     let isAdminLoggedIn = false;
 
-    // Zoom & 4-Way Drag Variables
-    let scale = 1.0;
-    let translateX = 0;
-    let translateY = 0;
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-
-    const modalImg = document.getElementById('modalImg');
+    // Pan & Zoom Engine
+    let scale = 1.0, posX = 0, posY = 0, isPanning = false, startTouchX = 0, startTouchY = 0, lastTouchEnd = 0;
+    const transformWrapper = document.getElementById('transformWrapper');
     const zoomContainer = document.getElementById('zoomContainer');
+    const modalImg = document.getElementById('modalImg');
 
-    function applyTransform() {
-      modalImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    function updateTransform() {
+      transformWrapper.style.transform = `translate3d(${posX}px, ${posY}px, 0px) scale(${scale})`;
     }
-
     function changeZoom(delta) {
-      scale = Math.max(0.8, Math.min(5.0, scale + delta));
-      applyTransform();
+      scale = Math.max(0.8, Math.min(6.0, scale + delta));
+      updateTransform();
     }
-
     function resetZoom() {
-      scale = 1.0;
-      translateX = 0;
-      translateY = 0;
-      applyTransform();
+      scale = 1.0; posX = 0; posY = 0; updateTransform();
     }
-
     function openZoomModal(imgSrc) {
-      const modal = document.getElementById('imageModal');
       modalImg.src = imgSrc;
       resetZoom();
-      modal.classList.remove('hidden');
+      document.getElementById('imageModal').classList.remove('hidden');
     }
-
     function closeZoomModal() {
       document.getElementById('imageModal').classList.add('hidden');
     }
 
-    // Touch & Mouse Drag Handlers (Left, Right, Up, Down)
-    function onPointerDown(e) {
-      isDragging = true;
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      startX = clientX - translateX;
-      startY = clientY - translateY;
-      zoomContainer.style.cursor = 'grabbing';
-    }
+    zoomContainer.addEventListener('touchstart', function(e) {
+      if (e.touches.length === 1) {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          scale = scale > 1.5 ? 1.0 : 2.5; posX = 0; posY = 0; updateTransform(); lastTouchEnd = 0; e.preventDefault(); return;
+        }
+        lastTouchEnd = now;
+        isPanning = true;
+        startTouchX = e.touches[0].clientX - posX;
+        startTouchY = e.touches[0].clientY - posY;
+      }
+    }, { passive: false });
 
-    function onPointerMove(e) {
-      if (!isDragging) return;
+    zoomContainer.addEventListener('touchmove', function(e) {
+      if (!isPanning || e.touches.length !== 1) return;
       e.preventDefault();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      translateX = clientX - startX;
-      translateY = clientY - startY;
-      applyTransform();
-    }
+      posX = e.touches[0].clientX - startTouchX;
+      posY = e.touches[0].clientY - startTouchY;
+      updateTransform();
+    }, { passive: false });
+    zoomContainer.addEventListener('touchend', () => isPanning = false);
 
-    function onPointerUp() {
-      isDragging = false;
-      zoomContainer.style.cursor = 'grab';
-    }
-
-    zoomContainer.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('mouseup', onPointerUp);
-
-    zoomContainer.addEventListener('touchstart', onPointerDown, { passive: false });
-    window.addEventListener('touchmove', onPointerMove, { passive: false });
-    window.addEventListener('touchend', onPointerUp);
-
+    // Admin & Navigation Logic
     function toggleAdminPanel() {
       const panel = document.getElementById('adminPanel');
       if (panel.classList.contains('hidden')) {
@@ -228,17 +269,135 @@
           if (pin === ADMIN_PIN) {
             isAdminLoggedIn = true;
             panel.classList.remove('hidden');
+            loadUserRequests();
           } else if (pin !== null) {
             alert("Galat Password!");
           }
         } else {
           panel.classList.remove('hidden');
+          loadUserRequests();
         }
       } else {
         panel.classList.add('hidden');
       }
     }
 
+    function switchAdminTab(tab) {
+      const upTab = document.getElementById('adminUploadTab');
+      const reqTab = document.getElementById('adminRequestsTab');
+      const upBtn = document.getElementById('tabUploadBtn');
+      const reqBtn = document.getElementById('tabRequestsBtn');
+
+      if (tab === 'upload') {
+        upTab.classList.remove('hidden');
+        reqTab.classList.add('hidden');
+        upBtn.className = "flex-1 bg-yellow-500 text-slate-900 py-1.5 rounded-lg";
+        reqBtn.className = "flex-1 bg-slate-700 text-slate-300 py-1.5 rounded-lg";
+      } else {
+        upTab.classList.add('hidden');
+        reqTab.classList.remove('hidden');
+        upBtn.className = "flex-1 bg-slate-700 text-slate-300 py-1.5 rounded-lg";
+        reqBtn.className = "flex-1 bg-yellow-500 text-slate-900 py-1.5 rounded-lg";
+        loadUserRequests();
+      }
+    }
+
+    // User Request Handling
+    function toggleUserRequestModal() {
+      const m = document.getElementById('userRequestModal');
+      m.classList.toggle('hidden');
+    }
+
+    async function submitUserRequest() {
+      const contact = document.getElementById('reqContact').value.trim();
+      const model = document.getElementById('reqModel').value.trim();
+      const board = document.getElementById('reqBoard').value.trim();
+      const fault = document.getElementById('reqFault').value.trim();
+      const statusMsg = document.getElementById('reqStatusMsg');
+      const btn = document.getElementById('btnSubmitReq');
+
+      if (!model && !board) {
+        alert("TV Model ya Board number likhna zaroori hai.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Submitting...";
+      statusMsg.className = "text-center text-[11px] text-yellow-400 block font-semibold";
+      statusMsg.innerText = "Sending request to database...";
+
+      try {
+        const { error } = await db.from('solution_requests').insert([{
+          user_contact: contact || "Not Provided",
+          model_number: model || "N/A",
+          board_number: board || "N/A",
+          fault_description: fault || "No fault details"
+        }]);
+
+        if (error) throw error;
+
+        statusMsg.className = "text-center text-[11px] text-green-400 block font-semibold";
+        statusMsg.innerText = "✓ Request sent successfully! Hum jald upload karenge.";
+        document.getElementById('reqContact').value = '';
+        document.getElementById('reqModel').value = '';
+        document.getElementById('reqBoard').value = '';
+        document.getElementById('reqFault').value = '';
+
+        setTimeout(() => {
+          statusMsg.classList.add('hidden');
+          toggleUserRequestModal();
+        }, 2000);
+      } catch (err) {
+        statusMsg.className = "text-center text-[11px] text-red-400 block font-semibold";
+        statusMsg.innerText = "Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Send Request to RK Electronics";
+      }
+    }
+
+    // Admin Load Requests Function
+    async function loadUserRequests() {
+      const list = document.getElementById('adminRequestsList');
+      const badge = document.getElementById('reqBadge');
+      list.innerHTML = `<p class="text-slate-400 text-center py-2">Loading...</p>`;
+
+      try {
+        const { data, error } = await db.from('solution_requests').select('*').order('id', { ascending: false });
+        if (error) throw error;
+
+        badge.innerText = data ? data.length : 0;
+
+        if (!data || data.length === 0) {
+          list.innerHTML = `<p class="text-slate-500 text-center py-4">Abhi koi pending request nahi hai.</p>`;
+          return;
+        }
+
+        list.innerHTML = data.map(req => `
+          <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 space-y-1 relative">
+            <button onclick="deleteRequest(${req.id})" class="absolute top-2 right-2 bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">✓ Done</button>
+            <p class="font-bold text-yellow-400">Board: ${req.board_number} | Model: ${req.model_number}</p>
+            <p class="text-slate-300"><strong class="text-slate-400">Fault:</strong> ${req.fault_description}</p>
+            <p class="text-[10px] text-slate-500">Contact: ${req.user_contact}</p>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        list.innerHTML = `<p class="text-red-400 text-center py-2">Error loading requests: ${err.message}</p>`;
+      }
+    }
+
+    async function deleteRequest(id) {
+      if (!confirm("Is request ka solution upload kar diya hai? Ise list se hata dein?")) return;
+      try {
+        await db.from('solution_requests').delete().eq('id', id);
+        loadUserRequests();
+      } catch (err) {
+        alert("Delete failed: " + err.message);
+      }
+    }
+
+    // Standard Upload Function
     async function uploadNewSolution() {
       const model = document.getElementById('admModel').value.trim();
       const board = document.getElementById('admBoard').value.trim();
@@ -260,9 +419,7 @@
 
       const selectedFiles = [];
       fileInputs.forEach(inp => {
-        if (inp && inp.files && inp.files[0]) {
-          selectedFiles.push(inp.files[0]);
-        }
+        if (inp && inp.files && inp.files[0]) selectedFiles.push(inp.files[0]);
       });
 
       uploadBtn.disabled = true;
@@ -272,27 +429,19 @@
 
       try {
         let uploadedImageNames = [];
-
         if (selectedFiles.length > 0) {
           for (let i = 0; i < selectedFiles.length; i++) {
             statusMsg.innerText = `Uploading photo ${i + 1} of ${selectedFiles.length}...`;
             const file = selectedFiles[i];
             const cleanFileName = `${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-            
-            const { error: imgError } = await db.storage
-              .from('post-images')
-              .upload(cleanFileName, file);
-
-            if (imgError) {
-              throw new Error(`Photo ${i+1} upload failed: ` + imgError.message);
-            }
+            const { error: imgError } = await db.storage.from('post-images').upload(cleanFileName, file);
+            if (imgError) throw new Error(`Photo ${i+1} upload failed: ` + imgError.message);
             uploadedImageNames.push(cleanFileName);
           }
         }
 
         statusMsg.innerText = "Saving fault data...";
         const imagesString = uploadedImageNames.join(',');
-
         const payload = {
           modal_number: model,
           board_number: board,
@@ -304,16 +453,7 @@
         };
 
         const { error: dbError } = await db.from('Tv Posts').insert([payload]);
-
-        if (dbError) {
-          const { error: dbError2 } = await db.from('Tv Posts').insert([{
-            modal_number: model,
-            board_number: board,
-            solution_details: solution,
-            circuit_image: imagesString
-          }]);
-          if (dbError2) throw new Error("Save error: " + dbError2.message);
-        }
+        if (dbError) throw dbError;
 
         statusMsg.className = "text-center text-[11px] text-green-400 font-semibold block";
         statusMsg.innerText = `✓ Successfully saved with ${uploadedImageNames.length} image(s)!`;
@@ -329,7 +469,6 @@
         }, 2000);
 
       } catch (err) {
-        console.error(err);
         statusMsg.className = "text-center text-[11px] text-red-400 font-semibold block";
         statusMsg.innerText = "Error: " + err.message;
       } finally {
@@ -338,6 +477,7 @@
       }
     }
 
+    // Search In Database
     async function searchInDatabase() {
       const modelInfo = document.getElementById('modelInput').value.trim();
       const submitBtn = document.getElementById('submitBtn');
@@ -359,12 +499,10 @@
 
       try {
         const { data, error } = await db.from('Tv Posts').select('*');
-
         let matched = false;
 
         if (data && data.length > 0) {
           const q = modelInfo.toLowerCase();
-          
           const filterData = data.filter(p => {
             const m = (p.modal_number || p["Modal number"] || "").toLowerCase();
             const b = (p.board_number || p["Board number"] || "").toLowerCase();
@@ -379,10 +517,9 @@
             filterData.forEach(post => {
               const card = document.createElement('div');
               card.className = "bg-slate-800 p-4 rounded-xl border border-green-500/50 space-y-3 shadow-md select-none";
-              
               const rawImages = (post.circuit_image || post["Circuit image"] || "").trim();
               let imageTags = '';
-              
+
               if (rawImages) {
                 const imgList = rawImages.split(',').map(s => s.trim()).filter(Boolean);
                 imageTags = `
@@ -423,12 +560,9 @@
           }
         }
 
-        if (!matched) {
-          await generateTvDiagnostics(modelInfo);
-        }
+        if (!matched) await generateTvDiagnostics(modelInfo);
 
       } catch (err) {
-        console.error(err);
         await generateTvDiagnostics(modelInfo);
       } finally {
         submitBtn.innerText = "Analyze & Search Solutions";
@@ -436,10 +570,10 @@
       }
     }
 
+    // AI Fallback
     async function generateTvDiagnostics(query) {
       const outputCard = document.getElementById('outputCard');
       const resultContent = document.getElementById('resultContent');
-
       outputCard.classList.remove('hidden');
       resultContent.innerHTML = "<em>Analyzing circuit voltages & fault points with AI... Kripya thoda intezar karein...</em>";
 
@@ -468,13 +602,7 @@
           const text = await response.text();
           resultContent.innerText = text.trim();
         } else {
-          resultContent.innerHTML = `
-<strong>📌 Instant Diagnostic Reference for "${query}":</strong><br>
-1. <strong>Power Supply:</strong> Check 12V / 5V Standby line.<br>
-2. <strong>Motherboard Core:</strong> Check 1.2V Core & 3.3V Flash pin 8.<br>
-3. <strong>Panel T-Con:</strong> Check VGH (+28V) and VGL (-6V).<br>
-4. <strong>Backlight:</strong> Check BL_ON (3.3V) & boost diode.
-          `;
+          resultContent.innerHTML = `<strong>📌 Standard Diagnostics for "${query}":</strong><br>1. Check 12V/5V Standby line.<br>2. Check Core 1.2V & SPI Flash 3.3V.<br>3. Panel lines: VGH (+28V), VGL (-6V).<br>4. Inverter BL_ON (3.3V).`;
         }
       } catch (err) {
         resultContent.innerHTML = `<span class="text-slate-400">Diagnosis ready for ${query}. Check standard power & panel lines.</span>`;
